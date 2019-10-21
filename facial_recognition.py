@@ -1,9 +1,10 @@
 import face_recognition
 import cv2
 import numpy as np
+from datetime import datetime
 
 
-video_capture = cv2.VideoCapture("rtmp://192.168.43.21:1935/live/stream.flv") #"rtmp://192.168.43.21:1935/live/stream.flv"
+video_capture = cv2.VideoCapture("rtmp://192.168.137.1:1935/live/stream.flv") #"rtmp://192.168.43.21:1935/live/stream.flv"
 
 # Load a sample picture and learn how to recognize it.
 rishav_image = face_recognition.load_image_file("known-people//rishav.jpg")
@@ -13,14 +14,20 @@ rishav_face_encoding = face_recognition.face_encodings(rishav_image)[0]
 vishal_image = face_recognition.load_image_file("known-people//vishal.jpg")
 vishal_face_encoding = face_recognition.face_encodings(vishal_image)[0]
 
+anuj_image = face_recognition.load_image_file("known-people//anuj.jpg")
+anuj_face_encoding = face_recognition.face_encodings(anuj_image)[0]
+
 # Create arrays of known face encodings and their names
 known_face_encodings = [
     rishav_face_encoding,
-    vishal_face_encoding
+    vishal_face_encoding,
+    anuj_face_encoding
+
 ]
 known_face_names = [
     "rishav",
-    "vishal"
+    "vishal",
+    "anuj"
 ]
 
 # Initialize some variables
@@ -28,6 +35,10 @@ face_locations = []
 face_encodings = []
 face_names = []
 process_this_frame = True
+num = len(known_face_names)
+list_names = [0]*num 
+c = 1
+listy = list()
 
 while True:
     # Grab a single frame of video
@@ -56,6 +67,38 @@ while True:
             best_match_index = np.argmin(face_distances)
             if matches[best_match_index]:
                 name = known_face_names[best_match_index]
+                now = datetime.now()
+                dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+                dt_string1 = now.strftime("%d/%m/%Y")
+                k = dt_string.split(":")
+                k = int(k[-1])
+                
+                 
+                if(k%3 == 0 and c == 1):
+                    max1 = max(list_names)
+                    n1 = list_names.index(max1)
+                    if(max1 >= 30):
+                        listy.append(known_face_names[n1]+" "+dt_string1)
+                        print(known_face_names[n1]," ",dt_string)
+
+                    list_names = [0]*num 
+                    c = 0
+                    continue
+                if(k%3 != 0):
+                    for i in range(0,num):
+                        if (name == known_face_names[i]):
+                            list_names[i] = list_names[i]+1
+                            c = 1
+                            continue
+                else:
+                    for i in range(0,num):
+                        if (name == known_face_names[i]):
+                            list_names[i] = list_names[i]+1
+                            continue
+
+
+
+
 
             # if name == "Unknown" :
             #     name1 = input("Enter your name -- ")

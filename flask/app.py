@@ -2,11 +2,15 @@ from flask import Flask, jsonify, render_template
 from flask.views import MethodView
 from flask_simplelogin import SimpleLogin, get_username, login_required
 import os
+import matplotlib.pyplot as plt; plt.rcdefaults()
+import numpy as np
+import matplotlib.pyplot as plt
 
 my_users = {
     'Teacher': {'password': 'teacher', 'roles': ['admin']},
-    'Vishal': {'password': 'vishal', 'roles': []},
-    'mary': {'password': 'jane', 'roles': []},
+    'vishal': {'password': 'vishal', 'roles': []},
+    'rishav': {'password': 'rishav', 'roles': []},
+    'anuj': {'password': 'anuj', 'roles': []},
    
 }
 
@@ -40,9 +44,48 @@ def index():
 
 
 @app.route('/secret')
-@login_required(username=['Vishal', 'mary'])
+@login_required(username=['vishal', 'rishav','anuj'])
 def secret():
-    full_filename = os.path.join(app.config['UPLOAD_FOLDER'], 'calendar.jpg')
+    user_data = get_username()
+    f = open("static/CSV/"+user_data+".csv","r")
+    k = f.readlines()
+    Subject = ["SB","BA","BB","ACJ","SM","MC"]
+    objects = ["SB","BA","BB","ACJ","SM","MC"]
+    Total = [0]*6
+    Present = [0]*6
+    Att = list()
+
+    for i in k:
+        a = i.split(",")
+        b = a[1].split(" ")
+        c = a[2].split(" ")
+        
+        for j in range(0,6):
+            for l in b:
+                if(Subject[j] == l):
+                    Total[j] = Total[j]+1
+
+            for m in c:
+                if(Subject[j] == m):
+                    Total[j] = Total[j]+1
+                    Present[j] = Present[j]+1
+
+
+    for i in range(0,6):
+        a = Present[i]/Total[i]
+        a = a*100
+        a = int(a)
+        objects[i] = objects[i]+" "+str(a)
+        Att.append(a)
+
+    y_pos = np.arange(len(objects))
+    plt.bar(y_pos, Att, align='center', alpha=0.5)
+    plt.xticks(y_pos, objects)
+    plt.ylabel('Attendance')
+    plt.title('Subject')
+
+    plt.savefig("static/people_photo/"+user_data+"1.jpg")
+    full_filename = os.path.join(app.config['UPLOAD_FOLDER'], user_data+'1.jpg')
 
     return render_template('secret.html', user_image = full_filename)
 
@@ -68,6 +111,8 @@ def have_approval(username):
 @app.route('/complex')
 @login_required(must=[be_admin, have_approval])
 def complexview():
+    
+    
     full_filename = os.path.join(app.config['UPLOAD_FOLDER'], 'vishal.jpg')
     return render_template('secret1.html', user_image = full_filename)
 
